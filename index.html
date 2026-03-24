@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VYRONT</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin:0;
+    overflow:hidden;
+    background:black;
+    font-family:'Orbitron', sans-serif;
+    color:white;
+}
+
+/* ENTER */
+.overlay {
+    position:fixed;
+    width:100%;
+    height:100%;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:black;
+    z-index:10;
+    cursor:pointer;
+}
+
+.overlay span {
+    letter-spacing:6px;
+    font-size:14px;
+    opacity:0.7;
+}
+
+/* canvas */
+canvas {
+    position:fixed;
+    top:0;
+    left:0;
+}
+
+/* logo */
+.logo {
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0.9);
+    font-size:90px;
+    letter-spacing:20px;
+    opacity:0;
+    text-shadow:0 0 40px rgba(255,255,255,0.25);
+    transition: opacity 1.5s ease, transform 1.5s ease;
+}
+
+/* fade overlay (для мягкого перехода атмосферы) */
+.fade {
+    position:fixed;
+    width:100%;
+    height:100%;
+    background:black;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 2s ease;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay" onclick="start()">
+    <span>ENTER</span>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<div class="logo" id="logo">VYRONT</div>
+<div class="fade" id="fade"></div>
+
+<audio id="whoosh" src="https://cdn.pixabay.com/download/audio/2022/10/16/audio_7c6b6b2b8c.mp3"></audio>
+<audio id="hit" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9bce5b.mp3"></audio>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+/* particles */
+let particles = [];
+
+for(let i=0;i<500;i++){
+    particles.push({
+        x:(Math.random()-0.5)*canvas.width,
+        y:(Math.random()-0.5)*canvas.height,
+        z:Math.random()*canvas.width
+    });
+}
+
+/* animation */
+let speed = 10;
+let introRunning = true;
+
+function animate(){
+    ctx.fillStyle="black";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle="white";
+
+    particles.forEach(p=>{
+        if(introRunning){
+            p.z -= speed;
+            if(p.z <= 1) p.z = canvas.width;
+        }
+
+        let f = 200 / p.z;
+        let x = p.x * f + canvas.width/2;
+        let y = p.y * f + canvas.height/2;
+
+        let size = (1 - p.z / canvas.width) * 3;
+
+        ctx.fillRect(x,y,size,size);
+    });
+
+    requestAnimationFrame(animate);
+}
+
+/* start */
+function start(){
+    document.querySelector('.overlay').style.display='none';
+
+    document.getElementById('whoosh').play();
+    setTimeout(()=> document.getElementById('hit').play(), 600);
+
+    /* show logo */
+    setTimeout(()=>{
+        const logo = document.getElementById('logo');
+        logo.style.opacity = 1;
+        logo.style.transform = "translate(-50%,-50%) scale(1)";
+    }, 800);
+
+    animate();
+
+    /* stop strong motion + settle scene */
+    setTimeout(()=>{
+        introRunning = false;
+
+        /* soften background (cinematic fade) */
+        document.getElementById('fade').style.opacity = 0.3;
+
+        /* reduce particle motion */
+        speed = 2;
+    }, 3000);
+}
+</script>
+
+</body>
+</html>
